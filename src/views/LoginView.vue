@@ -1,7 +1,7 @@
 <script setup>
-import { useRouter } from 'vue-router'
 import { request } from '../utils/request'
 import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
@@ -10,9 +10,9 @@ const formData = reactive({
   password: ''
 })
 
-const onRegister = async () => {
+const onLogin = async () => {
   try {
-    const res = await request('/auth/register', {
+    const res = await request('/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -22,7 +22,6 @@ const onRegister = async () => {
         password: formData.password
       })
     })
-
     localStorage.setItem('token', res.token)
     router.push('/')
   } catch (e) {
@@ -32,7 +31,7 @@ const onRegister = async () => {
 </script>
 
 <template>
-  <form @submit.prevent="onRegister" class="w-full flex justify-center items-center min-h-dvh">
+  <form @submit.prevent="onLogin" class="w-full flex justify-center items-center min-h-dvh">
     <div class="flex flex-col gap-4 rounded-xl border-2 border-gray-200 p-5 lg:w-3/12 md:w-6/12 w-10/12">
       <input
         v-model="formData.username"
@@ -48,7 +47,7 @@ const onRegister = async () => {
         class="border px-3 min-h-10 border-gray-300 rounded-lg"
         type="text"
       />
-      <button type="submit" class="bg-blue-400 text-white py-2 rounded-xl">Register</button>
+      <button type="submit" class="bg-blue-400 text-white py-2 rounded-xl">Login</button>
     </div>
   </form>
 </template>
