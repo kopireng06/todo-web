@@ -49,6 +49,7 @@ const onRegister = async () => {
         type="text"
       />
       <button type="submit" class="bg-blue-400 text-white py-2 rounded-xl">Register</button>
+      <p class="text-sm">Have an account? <router-link class="text-blue-400 text-sm" to="/login">login</router-link></p>
     </div>
   </form>
 </template>

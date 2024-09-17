@@ -1,7 +1,8 @@
 <script setup>
 import { request } from '@/utils/request'
-import { onMounted, ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import Modal from '@/components/Modal.vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const defaultForm = {
   id: 0,
@@ -11,14 +12,27 @@ const defaultForm = {
   note: ''
 }
 
+const router = useRouter()
+const route = useRoute()
+
 const tasks = ref([])
 const form = ref(defaultForm)
 const openModal = ref(false)
 
+const setQueryParams = (props) => {
+  router.replace({
+    path: route.path,
+    query: { ...route.query, ...props }
+  })
+}
+
 const getTasks = async () => {
   try {
     const res = await request('/task', {
-      method: 'GET'
+      method: 'GET',
+      params: {
+        ...route.query
+      }
     })
     tasks.value = res
   } catch (e) {
@@ -104,6 +118,11 @@ const handleSubmit = () => {
   form.value.id ? editTask() : createTask()
 }
 
+const onLogout = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+
 const getBgStatus = (status) => {
   const defaultClass = `text-xs px-2 py-1 rounded-lg`
 
@@ -154,23 +173,57 @@ const getDueDateMessage = (timestamp) => {
 const isSelectedTask = computed(() => !!form.value.id)
 const titleModal = computed(() => (isSelectedTask.value ? 'Edit task' : 'Add task'))
 
-onMounted(() => {
-  getTasks()
+watch(() => route.query, getTasks, {
+  immediate: true
 })
 </script>
 
 <template>
   <main class="px-5 max-w-7xl w-full mx-auto py-10">
+    <button class="ml-auto block mb-4 bg-red-500 text-white px-2 py-1 rounded-lg text-sm" @click="onLogout">
+      Logout
+    </button>
     <div class="w-full flex flex-col gap-5 items-start">
-      <div class="w-full flex gap-2 items-center">
-        <h1>My Tasks</h1>
-        <button @click="toggleOpenModal" class="bg-blue-600 text-sm text-white px-3 py-1 rounded-lg">
-          Add new task +
-        </button>
+      <div class="w-full flex justify-between md:items-center md:flex-row flex-col gap-5">
+        <div class="flex gap-2 items-center">
+          <h1>My Tasks</h1>
+          <button @click="toggleOpenModal" class="bg-blue-600 text-sm text-white px-3 py-1 rounded-lg">
+            Add new task +
+          </button>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input
+            :value="route.query.title"
+            @change="(e) => setQueryParams({ title: e.target.value })"
+            type="text"
+            placeholder="filter title"
+            class="border border-gray-300 p-1 rounded-lg w-20"
+          />
+          <select
+            :value="route.query.status"
+            @change="(e) => setQueryParams({ status: e.target.value === 'all' ? undefined : e.target.value })"
+            class="border border-gray-300 rounded-lg p-1 w-16"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+          <div class="flex gap-2 items-center flex-shrink-0">
+            <input
+              :checked="route.query.sort_by"
+              @change="setQueryParams({ sort_by: route.query.sort_by ? undefined : 'due_date' })"
+              type="checkbox"
+              class="md:w-6 md:h-6 w-4 h-4"
+              id="sort_by"
+            />
+            <label for="sort_by" class="text-sm text-gray-700"> Sort by due date </label>
+          </div>
+        </div>
       </div>
       <ul class="w-full grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-3">
         <li
-          class="cursor-pointer rounded-lg border border-gray-200 p-4"
+          class="cursor-pointer rounded-lg border-2 border-gray-200 p-4"
           v-for="task in tasks"
           @click="onClickTask(task)"
           :key="task.id"

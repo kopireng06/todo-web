@@ -48,6 +48,9 @@ const onLogin = async () => {
         type="text"
       />
       <button type="submit" class="bg-blue-400 text-white py-2 rounded-xl">Login</button>
+      <p class="text-sm">
+        Dont have an account? <router-link class="text-blue-400 text-sm" to="/register">register</router-link>
+      </p>
     </div>
   </form>
 </template>
